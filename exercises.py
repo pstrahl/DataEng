@@ -105,6 +105,7 @@ class People:
 
         Since some of the create_dts are chronologically after the modified_dts in the
         const table, we take the min as the created_dt and the max as the updated_dt.
+        We save the resulting table as people.csv.
         Returns:
             None
         """
@@ -132,13 +133,17 @@ class People:
                                    "isunsub": "is_unsub", "created_dt": "created_dt",
                                    "updated_dt": "updated_dt"}, axis=1, inplace=True
                            )
+        self.people.to_csv(r"people.csv", index=False,
+                               header=["email", "code", "is_unsub", "created_dt", "updated_dt"],
+                               na_rep='NULL')
 
     def get_acquisition_facts(self):
         """
         Obtain the number of constituents acquired per calendar day in a dataframe.
 
         The columns are acquisition date, which is the month-day of the calendar year, and
-        acquisitions, which is the number of constituents acquired on that day.
+        acquisitions, which is the number of constituents acquired on that day. We save the
+        resulting table as acquisition_facts.csv.
 
         Returns:
             None
@@ -153,6 +158,9 @@ class People:
         self.acquisition_facts.rename(mapper={"acquisition_date": "acquisition_date",
                                               "created_dt": "acquisitions"}, axis=1, inplace=True
                                       )
+        self.acquisition_facts.to_csv(r"acquisition_facts.csv", index=False,
+                                          header=["acquisition_date", "acquisitions"]
+                                          )
 
 
 if __name__ == "__main__":
@@ -177,11 +185,6 @@ if __name__ == "__main__":
     print("Constituents Subscription Info: \n {}".format(exercise.const_sub.head()))
     exercise.get_people()
     print("People: \n {}".format(exercise.people.head()))
-    exercise.people.to_csv(r"people.csv", index=False,
-                           header=["email", "code", "is_unsub", "created_dt", "updated_dt"],
-                           na_rep='NULL')
     exercise.get_acquisition_facts()
     print("Acquisition facts: \n {}".format(exercise.acquisition_facts.head()))
-    exercise.acquisition_facts.to_csv(r"acquisition_facts.csv", index=False,
-                                      header=["acquisition_date", "acquisitions"]
-                                      )
+
