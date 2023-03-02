@@ -54,7 +54,7 @@ class People:
         Returns:
             None
         """
-        self.const = self.const.loc[:, ["cons_id", "source", "create_dt", "modified_dt"]].copy()
+        self.const = self.const[["cons_id", "source", "create_dt", "modified_dt"]].copy()
         date_cols = ["create_dt", "modified_dt"]
         # Strip the day of the week and convert to datetime64[ns]
         for col in date_cols:
@@ -67,10 +67,10 @@ class People:
         Returns:
             None
         """
-        self.primary_emails = self.primary_emails.loc[:,
-                                    ["cons_email_id", "cons_id", "is_primary",
-                                    "email", "create_dt", "modified_dt"]
-                                    ].copy()
+        self.primary_emails = self.primary_emails[["cons_email_id", "cons_id", "is_primary",
+                                                   "email", "create_dt", "modified_dt"
+                                                   ]
+                                                  ].copy()
         self.primary_emails = self.primary_emails[self.primary_emails["is_primary"] == 1].copy()
         date_cols = ["create_dt", "modified_dt"]
         # Strip the day of the week and convert to datetime64[ns]
@@ -85,10 +85,10 @@ class People:
         Returns:
             None
         """
-        self.const_sub = \
-            self.const_sub.loc[:, ["cons_email_id", "chapter_id", "isunsub", "unsub_dt", "modified_dt"]].copy()
-        self.const_sub = \
-            self.const_sub[self.const_sub["chapter_id"] == 1].copy()
+        self.const_sub = self.const_sub[["cons_email_id", "chapter_id", "isunsub",
+                                         "unsub_dt", "modified_dt"]
+                                        ].copy()
+        self.const_sub = self.const_sub[self.const_sub["chapter_id"] == 1].copy()
         date_cols = ["unsub_dt", "modified_dt"]
         for col in date_cols:
             self.const_sub[col] = \
@@ -110,7 +110,7 @@ class People:
         """
         self.people = self.primary_emails.merge(self.const_sub, "left",
                                                 on="cons_email_id",
-                                                suffixes=["_pr", "_csub"],
+                                                suffixes=("_pr", "_csub"),
                                                 indicator=True
                                                 ).copy()
         # Fill the missing values of chapter_id with 1 and unsubscribed with 0
@@ -118,21 +118,19 @@ class People:
         # then they are still subscribed to chapter 1.
         self.people = self.people.fillna(value={"chapter_id": 1, "isunsub": 0})
         self.people = self.const.merge(self.people, "right",
-                                        on="cons_id",
-                                        suffixes=["_con", "_pr"],
-                                        indicator="_merge2"
-                                        ).copy()
+                                       on="cons_id",
+                                       suffixes=("_con", "_pr"),
+                                       indicator="_merge2"
+                                       ).copy()
         # For some of the records, the created date comes after the modified date in the
         # const table. I took this to mean that there is an error, so I took the minimum
         # of the two dates for the created_dt and the larger for the updated_dt.
-        self.people["created_dt"] = \
-            self.people.loc[:, ["create_dt_con", "modified_dt"]].apply(np.min, axis=1)
-        self.people["updated_dt"] = \
-            self.people.loc[:, ["create_dt_con", "modified_dt"]].apply(np.max, axis=1)
-        self.people = self.people.loc[:, ["email", "source", "isunsub", "created_dt", "updated_dt"]].copy()
+        self.people["created_dt"] = self.people[["create_dt_con", "modified_dt"]].apply(np.min, axis=1)
+        self.people["updated_dt"] = self.people[["create_dt_con", "modified_dt"]].apply(np.max, axis=1)
+        self.people = self.people[["email", "source", "isunsub", "created_dt", "updated_dt"]].copy()
         self.people.rename(mapper={"email": "email", "source": "code",
                                    "isunsub": "is_unsub", "created_dt": "created_dt",
-                                    "updated_dt": "updated_dt"}, axis=1, inplace=True
+                                   "updated_dt": "updated_dt"}, axis=1, inplace=True
                            )
 
     def get_acquisition_facts(self):
@@ -152,6 +150,8 @@ class People:
         self.acquisition_facts.rename(mapper={"acquisition_date": "acquisition_date",
                                               "created_dt": "acquisitions"}, axis=1, inplace=True
                                       )
+
+
 if __name__ == "__main__":
     exercise = People()
     print("Constituents: \n {}".format(exercise.const.head()))
@@ -174,16 +174,11 @@ if __name__ == "__main__":
     print("Constituents Subscription Info: \n {}".format(exercise.const_sub.head()))
     exercise.get_people()
     print("People: \n {}".format(exercise.people.head()))
-    exercise.people.to_csv(r"people.csv",
+    exercise.people.to_csv(r"people.csv", index=False,
                            header=["email", "code", "is_unsub", "created_dt", "updated_dt"],
                            na_rep='NULL')
     exercise.get_acquisition_facts()
     print("Acquisition facts: \n {}".format(exercise.acquisition_facts.head()))
-    exercise.acquisition_facts.to_csv(r"acquisition_facts.csv",
+    exercise.acquisition_facts.to_csv(r"acquisition_facts.csv", index=False,
                                       header=["acquisition_date", "acquisitions"]
                                       )
-
-
-
-
-
