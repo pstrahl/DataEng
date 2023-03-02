@@ -139,6 +139,9 @@ class People:
 
         The columns are acquisition date, which is the month-day of the calendar year, and
         acquisitions, which is the number of constituents acquired on that day.
+
+        Returns:
+            None
         """
         extended_people = self.people.copy()
         # Get the month and day of the date of creation
