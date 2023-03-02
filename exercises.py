@@ -44,8 +44,8 @@ class People:
         self.const = pd.read_csv(r"cons.csv")
         self.primary_emails = pd.read_csv(r"cons_email.csv")
         self.const_sub = pd.read_csv(r"chapter.csv")
-
         self.people = None
+        self.acquisition_facts = None
 
     def get_const(self):
         """
@@ -135,32 +135,54 @@ class People:
                                     "updated_dt": "updated_dt"}, axis=1, inplace=True
                            )
 
+    def get_acquisition_facts(self):
+        """
+        Obtain the number of constituents acquired per calendar day in a dataframe.
 
+        The columns are acquisition date, which is the month-day of the calendar year, and
+        acquisitions, which is the number of constituents acquired on that day.
+        """
+        extended_people = self.people.copy()
+        # Get the month and day of the date of creation
+        acq_dates = extended_people["created_dt"].apply(lambda d: d.strftime("%m-%d"))
+        extended_people["acquisition_date"] = acq_dates
+        acquisition_series = extended_people.groupby("acquisition_date")["created_dt"].count()
+        self.acquisition_facts = pd.DataFrame(acquisition_series)
+        self.acquisition_facts.reset_index(inplace=True)
+        self.acquisition_facts.rename(mapper={"acquisition_date": "acquisition_date",
+                                              "created_dt": "acquisitions"}, axis=1, inplace=True
+                                      )
 if __name__ == "__main__":
     exercise = People()
-    print("Constituents:{}".format(exercise.const.head()))
+    print("Constituents: \n {}".format(exercise.const.head()))
     get_column_info(exercise.const)
     exercise.get_const()
     # Verify type conversion performed as expected
     get_column_info(exercise.const)
-    print("Constituents:{}".format(exercise.const.head()))
-    print("Primary_emails:{}".format(exercise.primary_emails.head()))
+    print("Constituents: \n {}".format(exercise.const.head()))
+    print("Primary_emails: \n {}".format(exercise.primary_emails.head()))
     get_column_info(exercise.primary_emails)
     exercise.get_primary_emails()
     # Verify type conversion performed as expected
     get_column_info(exercise.primary_emails)
-    print("Primary emails:{}".format(exercise.primary_emails.head()))
-    print("Constituents Subscription Info:{}".format(exercise.const_sub.head()))
+    print("Primary emails: \n {}".format(exercise.primary_emails.head()))
+    print("Constituents Subscription Info: \n {}".format(exercise.const_sub.head()))
     get_column_info(exercise.const_sub)
     exercise.get_const_sub()
     # Verify type conversion performed as expected
     get_column_info(exercise.const_sub)
-    print("Constituents Subscription Info:{}".format(exercise.const_sub.head()))
+    print("Constituents Subscription Info: \n {}".format(exercise.const_sub.head()))
     exercise.get_people()
-    print("People:{}".format(exercise.people.head()))
+    print("People: \n {}".format(exercise.people.head()))
     exercise.people.to_csv(r"people.csv",
                            header=["email", "code", "is_unsub", "created_dt", "updated_dt"],
                            na_rep='NULL')
+    exercise.get_acquisition_facts()
+    print("Acquisition facts: \n {}".format(exercise.acquisition_facts.head()))
+    exercise.acquisition_facts.to_csv(r"acquisition_facts.csv",
+                                      header=["acquisition_date", "acquisitions"]
+                                      )
+
 
 
 
